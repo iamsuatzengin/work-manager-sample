@@ -13,7 +13,10 @@ object MakeNotification {
 
     private const val CHANNEL_ID = "CHANNEL_ID"
     private const val NOTIFICATION_ID = 1
-    fun showNotification(context: Context) {
+
+
+
+    fun showNotification(context: Context, title: String) {
 
         val intent = Intent(context, SecondFragment::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -24,7 +27,8 @@ object MakeNotification {
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Hey! Time to drink Water!")
+//            .setContentTitle("Hey! Time to drink Water!")
+            .setContentTitle(title)
             .setContentText(
                 "Hey my friend, you know benefits of water? Drink a glass of water and search it!"
             )

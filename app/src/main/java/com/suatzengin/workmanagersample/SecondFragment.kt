@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.work.*
+import com.google.android.material.snackbar.Snackbar
 import com.suatzengin.workmanagersample.databinding.FragmentSecondBinding
 import java.util.concurrent.TimeUnit
 
@@ -38,24 +39,40 @@ class SecondFragment : Fragment() {
         binding.buttonSecond.setOnClickListener {
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
-        binding.myFirstButton.setOnClickListener {
+        val workManager = WorkManager.getInstance(requireContext())
+        val constraints = Constraints.Builder()
+            .setRequiresCharging(false)
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .build()
 
-            val constraints = Constraints.Builder()
-                .setRequiresCharging(false)
-                .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+        val data: Data = workDataOf(
+            "KEY_TITLE" to "This is a PeriodicWorkRequest!"
+        )
+
+        val reminderWorker: WorkRequest =
+            PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.MINUTES)
+                .setInitialDelay(10, TimeUnit.SECONDS)
+                .setConstraints(constraints)
+                .setInputData(data)
                 .build()
-//            val reminderWorker: WorkRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
-//                .setInitialDelay(10, TimeUnit.SECONDS)
-//                .build()
-            val reminderWorker: WorkRequest =
-                PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
-                    .setInitialDelay(1, TimeUnit.SECONDS)
 
-                    .build()
-
-            WorkManager.getInstance(requireContext())
-                .enqueue(reminderWorker)
+        binding.btnSchedule.setOnClickListener {
+            workManager.enqueue(reminderWorker)
         }
+
+        binding.btnCancel.setOnClickListener {
+            workManager.cancelWorkById(reminderWorker.id)
+        }
+        workManager.getWorkInfoByIdLiveData(reminderWorker.id)
+            .observe(viewLifecycleOwner) { workInfo ->
+                Snackbar.make(view, "State: ${workInfo.state.name}", Snackbar.LENGTH_LONG)
+                    .setAction("OK", null).show()
+                if (workInfo.state.isFinished) {
+                    Snackbar.make(view, "bitti - ${workInfo.state.name}", Snackbar.LENGTH_LONG)
+                        .setAction("OK", null).show()
+                }
+
+            }
 
     }
 
